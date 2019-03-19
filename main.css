@@ -1,0 +1,25 @@
+header {
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid red;
+    color: blue;
+}
+
+body {
+    background-image: url("assets/bg.jpg");
+    background-position: 0px -300px;
+}
+
+ul {
+    margin-left: auto;
+    margin-right: auto;    
+    list-style-type: none;
+}
+
+.answerItem {
+    border: 1px solid black;
+}
+
+.solution {
+    color: green;
+}
