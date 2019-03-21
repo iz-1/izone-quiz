@@ -19,8 +19,9 @@ let score = 0;
 
 //const listStyle = "answerItem";
 const listStyle = "question";
-const answerStyle = "answer";
+const answerStyle = "answer hover";
 const questionClassID = ".question-list";
+const resultSplashTimeMs = 1 * 1000;
 
 //{question: "Test", answers: ["The Unit", "Mix Nine", "K-pop Star", "Idol School", "Dancing 9"]}
 const DataBase = [];
@@ -30,22 +31,56 @@ function ResetQuiz()
     questionIndex = score = 0;
 }
 
+// ['classe': '...']
+// ['type': 'checkbox' ]
+// ['id' : id]
+// ['val' : value]
+// ['disabled': disable]
+
+// let entry = new LabelButton(styles, `cb${i}`, q.answers[i]);
+
+function LabelButton(classesList, id, value, disable = false)
+{
+    this.type = "checkbox",
+    this.class = classesList,
+    this.id = id,
+    this.val = value,
+    this.disabled = disable,
+
+    this.getCBString = function(){
+        return `<input type='${this.type}' id='${this.id}'${this.disabled ? ' disabled' : ''}>`;
+    }
+
+    this.getLabelString = function()
+    {
+        return `<label class='${this.class.join(' ')}' for='${this.id}'>${this.val}</label>`;
+    }
+
+    this.getString = function() {
+        return `<div>${this.getCBString() + this.getLabelString()}</div>`;
+    }
+};
+
 function GenerateQuestionString(index)
 {
     console.log(`Called GenerateQuestionString`);
     const q = DataBase[index];
     let questionString = [];
-    let answerIndex = 0;
 
-    // set color
-    //$('.membercolor').css({'background-color':`#${q.color}`});
-    
-    //$('.membercolor').css({"background-color":"red"});
+    for(let i=0; i<q.answers.length; ++i)
+    {
+        let styles = [listStyle, answerStyle];
+        if(i===0)
+            styles.push('solution');
+        let entry = new LabelButton(styles, `cb${i}`, q.answers[i]);
 
-    q.answers.forEach(item => questionString.push(`<li class='${listStyle} ${answerStyle} ${answerIndex++ === 0 ? 'solution' : ''}'>${item}</li>`));
+        questionString.push(entry.getString());
+
+     }
+
     shuffleArray(questionString);
-
-    questionString.unshift(`<li class='${listStyle} membercolor'>${q.question}?</li>`);
+    let styles = [listStyle, 'membercolor'];
+    questionString.unshift(new LabelButton(styles, 'cbquestion', `${q.question}?`, true).getString());
 
     return questionString.join("");
 }
@@ -67,22 +102,40 @@ function GenerateTable()
 function HandleQuiz()
 {
     console.log(`Called HandleQuiz`);
+    DisableDefaultBehavior();
     HandleAnswerSelect();
     GenerateTable();
     RenderQuestion(questionIndex);
     CalculateScore();
 }
 
+function DisableDefaultBehavior()
+{
+    console.log(`Called DisableDefaultBehavior`);
+    $('#question-form').submit(event => {
+        event.preventDefault();
+        AddQuestionToForm();
+    });    
+}
+
+function AddQuestionToForm()
+{
+    console.log(`Called AddQuestionToForm`);
+    $('.question-form').append(`<button class="btn" value='submit'>Test</button>`);
+}
+
 function RenderQuestion(index)
 {
     let questionStr = GenerateQuestionString(index);
     // display the current question
-    //console.log(questionStr);
-    $(questionClassID).empty().append(questionStr);
+    
+    $('#question-form').empty().append(questionStr);
 
     // set color question color
-    //$('.membercolor').css('background-color', `#${DataBase[index].color}`);
-    $('.membercolor').css('background-color', `rgba( ${hex2rgb(DataBase[index].color)} , 0.5)`);
+    let colorstr = `rgba( ${hex2rgb(DataBase[index].color)} , 0.5)`;
+    $('.membercolor').css('background-color', colorstr);
+
+    //$('.answer.active').css('background-color', colorstr);
 }
 
 function hex2rgb(hex)
@@ -93,20 +146,43 @@ function hex2rgb(hex)
 
 function DisplayFinalResults()
 {
+    /*
+    $('#question-form').empty().append(
+        `<label class='question'>${score}</label>`
+    );
+    */
 
+    
+    $('#question-form').empty();
+
+    let styles = ['finalresult'];
+    let resultString = 'Finished';
+    let resultLabel = new LabelButton(styles, 'cbquestion', resultString, true);
+    $('#question-form').append(resultLabel.getString());
 }
 
 function HandleAnswerSelect()
 {
     console.log(`Called HandleAnswerSelect`);
-    $('.question-list').on('click', 'li', function(event) {
+
+    $('#question-form').on('click', 'label', function(event) {
         event.stopPropagation();
 
         if($(this).hasClass("selected"))
+        {
+            // disable selection
+            $('#question-form').off('click');
+            $('.label').toggleClass('answer hover');
+
             HandleAnswerSubmit(this);
+            
+            $('label').toggleClass('answer hover');
+            HandleAnswerSelect();
+        }
         else if($(this).hasClass("answer"))
         {
-            $('li').removeClass("selected");
+            $('label').removeClass("selected");
+            $(this).removeClass("selectTransition");
             $(this).addClass("selected");
         }
     });
@@ -114,22 +190,50 @@ function HandleAnswerSelect()
 
 function HandleAnswerSubmit(eventTarget)
 {
+    console.log(`Called HandleAnswerSubmit`);
+
+    let resultText = "Incorrect";
     // check answer
     if($(eventTarget).hasClass("solution"))
-        ++score;
+    {
+        UpdateScore(score + 1);
+        resultText = 'Correct';        
+    }
 
-        // if completed display results else transition to next question
-    if(++questionIndex > DataBase.length)
-        DisplayResults();
-    else        
-        RenderQuestion(questionIndex);
-                
-    CalculateScore();
+    $('.solution').css('background-color', $('.membercolor').css('background-color'));
+
+    $('.result').text(resultText);
+
+    $('.result').toggleClass('off');
+
+    DisplayResults();                    
 }
 
 function DisplayResults()
 {
+    console.log(`Called DisplayResults`);
     // display final splash summary
+
+    // timer and cleanup page
+    setTimeout(function(){ 
+        $('.solution').css('background-color', '');
+
+        $('.result').toggleClass('off');
+
+        let nextQuestion = questionIndex + 1;
+
+        if(nextQuestion >= DataBase.length)
+        {
+            DisplayFinalResults();
+        }
+        else
+        {
+            RenderQuestion(nextQuestion);
+            //CalculateScore();
+            UpdateQuestionNumber(nextQuestion);
+        }
+
+    }, resultSplashTimeMs);
 }
 
 function CalculateScore()
@@ -138,6 +242,18 @@ function CalculateScore()
     //console.log(`Score: ${score} / ${DataBase.length}`);
     // update total score and question number
     $('.score').html(`Score: ${score}<br>Question: ${questionIndex+1}/${DataBase.length}`);
+}
+
+function UpdateScore(val)
+{
+    $('.score').html(`Score: ${val}<br>Question: ${questionIndex+1}/${DataBase.length}`);
+    score = val;
+}
+
+function UpdateQuestionNumber(val)
+{
+    $('.score').html(`Score: ${score}<br>Question: ${val+1}/${DataBase.length}`);
+    questionIndex = val;
 }
 
 /**
