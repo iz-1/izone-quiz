@@ -16,6 +16,8 @@ Wonyoung along with Nako and Chaewon love which flavor of Ice cream? [Mint Choco
 
 let questionIndex = 0;
 let score = 0;
+//let transitionState = false;
+let transitionTimer = null;
 
 //const listStyle = "answerItem";
 const listStyle = "question";
@@ -96,17 +98,26 @@ function GenerateTable()
         DataBase.push({question: questionList[i], answers: questionList[i+1].split(", "), color: questionList[i+2]});
 
     //console.log(questionList);
-    console.log(DataBase);
+    //console.log(DataBase);
 }
 
 function HandleQuiz()
 {
     console.log(`Called HandleQuiz`);
-    DisableDefaultBehavior();
-    HandleAnswerSelect();
+    DisableDefaultBehavior();    
     GenerateTable();
+    StartQuiz();
+}
+
+function StartQuiz()
+{
+    console.log(`Called StartQuiz`);
+    questionIndex = 0;
+    score = 0;    
+    transitionTimer = null;
+    HandleAnswerSelect();
     RenderQuestion(questionIndex);
-    CalculateScore();
+    CalculateScore();    
 }
 
 function DisableDefaultBehavior()
@@ -126,6 +137,8 @@ function AddQuestionToForm()
 
 function RenderQuestion(index)
 {
+    console.log(`Called RenderQuestion`);
+
     let questionStr = GenerateQuestionString(index);
     // display the current question
     
@@ -135,7 +148,19 @@ function RenderQuestion(index)
     let colorstr = `rgba( ${hex2rgb(DataBase[index].color)} , 0.5)`;
     $('.membercolor').css('background-color', colorstr);
 
-    //$('.answer.active').css('background-color', colorstr);
+    //SetBackgroundHighlight(index, index-1);
+    //SetBackgroundHighlight(4, -1);
+    $('#hl12').addClass('bghl');
+}
+
+function SetBackgroundHighlight(index, prevIndex)
+{
+    const HighLightListOrder = [11, 3, 10, 4, 1, 9, 8, 12, 2, 5, 7, 6];
+
+    if(prevIndex>=0)
+        $('#hl' + HighLightListOrder[prevIndex].toString()).removeClass('bghl');
+    if(index>=0)
+        $('#hl' + HighLightListOrder[index].toString()).addClass('bghl');
 }
 
 function hex2rgb(hex)
@@ -146,44 +171,72 @@ function hex2rgb(hex)
 
 function DisplayFinalResults()
 {
-    /*
-    $('#question-form').empty().append(
-        `<label class='question'>${score}</label>`
-    );
-    */
-
+    score = 8;
     
+    let str = "90 A 80 B 70 C 60 D 50 F";
+    let parsed = str.split(' ');
+
+    let grade = "F";
+    let percentage = score / DataBase.length * 100;
+
+    for(let i=0; i<parsed.length; i+=2)
+    {
+        if( percentage > parsed[i])
+        {
+            grade = parsed[i+1];
+            break;
+        }
+    }
+
+    console.log(grade);
+
     $('#question-form').empty();
 
     let styles = ['finalresult'];
-    let resultString = 'Finished';
+    let resultString = `Grade: ${grade}<br>${score} questions correct out of ${DataBase.length}`;
     let resultLabel = new LabelButton(styles, 'cbquestion', resultString, true);
     $('#question-form').append(resultLabel.getString());
+
+    // restart button
+    styles = [listStyle, answerStyle];
+    resultLabel = new LabelButton(styles, 'restart', "Restart");
+    $('#question-form').append(resultLabel.getString());
+
+    $('#question-form').off('mouseup');
+
+    $('#question-form').on('mouseup', function(){
+        $('#question-form').off('mouseup');        
+        StartQuiz();
+    });
+
+    SetBackgroundHighlight(-1, questionIndex);
 }
 
 function HandleAnswerSelect()
 {
     console.log(`Called HandleAnswerSelect`);
 
-    $('#question-form').on('click', 'label', function(event) {
+    $('#question-form').on('mouseup', 'label', function(event) {
+        let sel = $(this).hasClass("selected");
+        console.log(`question-form click, transition? ${transitionTimer == null}, seleced? ${sel}`);
+
         event.stopPropagation();
 
-        if($(this).hasClass("selected"))
-        {
-            // disable selection
-            $('#question-form').off('click');
-            $('.label').toggleClass('answer hover');
+        if(transitionTimer != null)
+            return;
 
+        if(sel)
+        {
+            console.log(`disable click`);
             HandleAnswerSubmit(this);
-            
-            $('label').toggleClass('answer hover');
-            HandleAnswerSelect();
         }
         else if($(this).hasClass("answer"))
         {
             $('label').removeClass("selected");
             $(this).removeClass("selectTransition");
-            $(this).addClass("selected");
+            
+            console.log(`toggle selected from ${$(this).hasClass("answer")}`);
+            $(this).toggleClass("selected");
         }
     });
 }
@@ -206,7 +259,7 @@ function HandleAnswerSubmit(eventTarget)
 
     $('.result').toggleClass('off');
 
-    DisplayResults();                    
+    DisplayResults();       
 }
 
 function DisplayResults()
@@ -215,7 +268,7 @@ function DisplayResults()
     // display final splash summary
 
     // timer and cleanup page
-    setTimeout(function(){ 
+    transitionTimer = setTimeout(function(){ 
         $('.solution').css('background-color', '');
 
         $('.result').toggleClass('off');
@@ -229,18 +282,16 @@ function DisplayResults()
         else
         {
             RenderQuestion(nextQuestion);
-            //CalculateScore();
             UpdateQuestionNumber(nextQuestion);
         }
 
+        transitionTimer = null;
     }, resultSplashTimeMs);
 }
 
 function CalculateScore()
 {
     console.log(`Called CalculateScore`);
-    //console.log(`Score: ${score} / ${DataBase.length}`);
-    // update total score and question number
     $('.score').html(`Score: ${score}<br>Question: ${questionIndex+1}/${DataBase.length}`);
 }
 
