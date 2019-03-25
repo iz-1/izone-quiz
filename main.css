@@ -4,12 +4,19 @@
     url('hoonslimskinnyl.ttf') format('truetype');
 }
 
-* {
+main, .header-items {
     color: white;
     border-radius: 10px;  
     font-family: 'HoonSlim';
     font-size: 40pt;
     font-weight: bold;    
+    text-shadow:
+    3px 3px 0 #1d0029,
+  -1px -1px 0 #1d0029,  
+   1px -1px 0 #1d0029,
+   -1px 1px 0 #1d0029,
+    1px 1px 0 #1d0029;      
+
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -22,12 +29,6 @@ header {
     margin-left: auto;
     margin-right: auto;
     background-color: rgba(238,58,158,0.5);
-    /*
-    margin-left: 20px;
-    margin-right: 20px;
-    margin-top: 5px;
-    */
-    /* width: 98%; */
 }
 
 .header-items {
@@ -63,13 +64,6 @@ label {
     align-items: center;
     height: 100px;          
     font-size: 30pt;
-    color: white;
-    text-shadow:
-    3px 3px 0 #1d0029,
-  -1px -1px 0 #1d0029,  
-   1px -1px 0 #1d0029,
-   -1px 1px 0 #1d0029,
-    1px 1px 0 #1d0029;      
 }
 
 .membercolor {
@@ -81,7 +75,7 @@ label {
     background-color: rgba(0,0,0,0.2);
 }
 
-.answer.hover:hover {    
+.answer.hover:hover, div:focus label {    
     transition: 0.5s;
     background-color: rgba(255, 255, 255, 0.1);
 }
@@ -105,26 +99,28 @@ label {
 
 body {
     background-image: url("assets/bg.jpg");
-    /* background-position-x: center; */
     background-repeat: no-repeat;
     background-size: cover;
-
-    background-position: 50% calc(65%);
-    /* background-position-y: -200px; */
-    /* background-position-y: calc(65%); */
+    background-attachment: fixed;
+    background-position: 50% -350px;
 }
 
 .result{
-    color: rgba(255,255,255,0);
+    color: rgba(255,255,255,0);    
     -webkit-animation: flash linear 500ms infinite;
     animation: flash linear 500ms infinte;
 }
 
 .off {
+    text-shadow: none;
     -moz-animation-name: none;
     -webkit-animation-name: none;
     -ms-animation-name: none;
     animation-name: none;
+}
+
+div:focus {
+    outline: none;
 }
 
 @-webkit-keyframes flash
@@ -174,7 +170,7 @@ body {
     }
 }
 
-.behindHighlight {
+.bgHighlight {
     z-index: -1;
     background-color: rgba(0,0,0,0.2);
     /*width: 98.5%;*/
@@ -250,6 +246,3 @@ body {
     #hl9 { width: 9%;}
     #hl11 { width: 10%;}
 }
-        
-
-

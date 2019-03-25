@@ -16,6 +16,7 @@ Wonyoung along with Nako and Chaewon love which flavor of Ice cream? [Mint Choco
 
 let questionIndex = 0;
 let score = 0;
+//let transitionState = false;
 let transitionTimer = null;
 
 //const listStyle = "answerItem";
@@ -25,46 +26,20 @@ const questionClassID = ".question-list";
 const resultSplashTimeMs = 1 * 1000;
 
 //{question: "Test", answers: ["The Unit", "Mix Nine", "K-pop Star", "Idol School", "Dancing 9"]}
-const DataBase = [];        
+const DataBase = [];
 
-function CheckboxParentFocus()
+function ResetQuiz()
 {
-    console.log(`Called CheckboxParentFocus`);
-    $('#question-form div').focusin( function(){
-        $(this).addClass('focus');
-    });
-
-    $('#question-form div').focusout( function(){
-        $(this).removeClass('focus');
-    });    
+    questionIndex = score = 0;
 }
 
-function BindKeyPress()
-{
-    console.log(`Called BindKeyPress`);
+// ['classe': '...']
+// ['type': 'checkbox' ]
+// ['id' : id]
+// ['val' : value]
+// ['disabled': disable]
 
-    $('main').on('keydown', function(e){
-        if(transitionTimer == null && e.keyCode == 32)
-        {            
-            let focusedItem = $(document.activeElement);
-            if(focusedItem != null)
-            {
-                let childitem = focusedItem.children('label');
-                let inputItem = focusedItem.children('input');
-                
-                if(inputItem.attr('id') == 'restart')
-                {
-                    StartQuiz();    
-                }
-                else
-                {
-                    SelectItem(childitem);
-                    childitem.addClass('selected');
-                }
-            }
-        }
-    });
-}
+// let entry = new LabelButton(styles, `cb${i}`, q.answers[i]);
 
 function LabelButton(classesList, id, value, disable = false)
 {
@@ -84,7 +59,7 @@ function LabelButton(classesList, id, value, disable = false)
     }
 
     this.getString = function() {
-        return `<div tabindex='${this.disabled? -1:0}'>${this.getCBString() + this.getLabelString()}</div>`;
+        return `<div>${this.getCBString() + this.getLabelString()}</div>`;
     }
 };
 
@@ -121,16 +96,18 @@ function GenerateTable()
 
     for(let i=0; i<questionList.length; i+=3)
         DataBase.push({question: questionList[i], answers: questionList[i+1].split(", "), color: questionList[i+2]});
+
+    //console.log(questionList);
+    //console.log(DataBase);
 }
 
 function HandleQuiz()
 {
-    console.log(`Called HandleQuiz`);    
-    BindKeyPress();
+    console.log(`Called HandleQuiz`);
     GenerateBackgroundHighlightElements();
     DisableDefaultBehavior();    
     GenerateTable();
-    DisplayStartButton('Start')
+    StartQuiz();
 }
 
 function StartQuiz()
@@ -141,7 +118,6 @@ function StartQuiz()
     transitionTimer = null;
     HandleAnswerSelect();
     RenderQuestion(questionIndex);
-    CheckboxParentFocus();
     CalculateScore();    
 }
 
@@ -197,21 +173,6 @@ function SetBackgroundHighlight(index, prevIndex)
         $('#hl' + HighLightListOrder[index].toString()).addClass('bghl');
 }
 
-function DisplayStartButton(btnText)
-{
-    // restart button
-    let styles = [listStyle, answerStyle];
-    let resultLabel = new LabelButton(styles, 'restart', btnText);
-    $('#question-form').append(resultLabel.getString());
-
-    $('#question-form').off('mouseup');
-
-    $('#question-form').on('mouseup', function(){
-        $('#question-form').off('mouseup');        
-        StartQuiz();
-    });
-}
-
 function hex2rgb(hex)
 {
     let lint = parseInt(hex,16);
@@ -246,8 +207,6 @@ function DisplayFinalResults()
     let resultLabel = new LabelButton(styles, 'cbquestion', resultString, true);
     $('#question-form').append(resultLabel.getString());
 
-    DisplayStartButton('Restart');
-    /*
     // restart button
     styles = [listStyle, answerStyle];
     resultLabel = new LabelButton(styles, 'restart', "Restart");
@@ -259,27 +218,8 @@ function DisplayFinalResults()
         $('#question-form').off('mouseup');        
         StartQuiz();
     });
-    */
 
     SetBackgroundHighlight(-1, questionIndex);
-}
-
-function SelectItem(targetObj)
-{
-    let sel = $(targetObj).hasClass("selected");
-
-    if(sel)
-    {
-        console.log(`disable click`);
-        HandleAnswerSubmit(targetObj);
-    }
-    else if($(targetObj).hasClass("answer"))
-    {
-        $('label').removeClass("selected");
-        
-        console.log(`toggle selected from ${$(targetObj).hasClass("answer")}`);
-        $(targetObj).toggleClass("selected");
-    }
 }
 
 function HandleAnswerSelect()
