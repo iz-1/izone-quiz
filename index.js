@@ -17,6 +17,7 @@ Wonyoung along with Nako and Chaewon love which flavor of Ice cream? [Mint Choco
 let questionIndex = 0;
 let score = 0;
 let transitionTimer = null;
+let prevItem = null;
 
 //const listStyle = "answerItem";
 const listStyle = "question";
@@ -47,6 +48,30 @@ function BindKeyPress()
         if(transitionTimer == null && e.keyCode == 32)
         {            
             let focusedItem = $(document.activeElement);
+            let childItem = focusedItem.children('label');
+
+            console.log(childItem);
+
+            if(childItem != null)
+            {
+                
+                if(!childItem.hasClass('spacePress'))
+                {
+                    childItem.addClass('spacePress');
+
+                    if(prevItem != null)
+                        prevItem.toggleClass('spacePress');
+
+                    prevItem = childItem;
+                }
+            }
+        }        
+    });
+
+    $('main').on('keyup', function(e){
+        if(transitionTimer == null && e.keyCode == 32)
+        {            
+            let focusedItem = $(document.activeElement);
             if(focusedItem != null)
             {
                 let childitem = focusedItem.children('label');
@@ -54,7 +79,7 @@ function BindKeyPress()
                 
                 if(inputItem.attr('id') == 'restart')
                 {
-                    StartQuiz();    
+                    StartQuiz();
                 }
                 else
                 {
@@ -100,9 +125,7 @@ function GenerateQuestionString(index)
         if(i===0)
             styles.push('solution');
         let entry = new LabelButton(styles, `cb${i}`, q.answers[i]);
-
         questionString.push(entry.getString());
-
      }
 
     shuffleArray(questionString);
@@ -178,17 +201,20 @@ function RenderQuestion(index)
 
 function GenerateBackgroundHighlightElements()
 {
+    console.log(`Called GenerateBackgroundHighlightElements`);
     let elements = [];
     for(let i=1; i<=12; ++i)
         elements.push(`<li class='highlight' id='hl${i.toString()}'></li>`);
 
     elements.unshift(`<li class='highlight' id='edge'></li>`);
     
-    $('.behindHighlight').append(elements.join(""));
+    $('.bgHighlight').append(elements.join(""));
 }
 
 function SetBackgroundHighlight(index, prevIndex)
 {
+    console.log(`Called SetBackgroundHighlight`);
+
     const HighLightListOrder = [11, 3, 10, 4, 1, 9, 8, 12, 2, 5, 7, 6];
 
     if(prevIndex>=0)
@@ -247,19 +273,6 @@ function DisplayFinalResults()
     $('#question-form').append(resultLabel.getString());
 
     DisplayStartButton('Restart');
-    /*
-    // restart button
-    styles = [listStyle, answerStyle];
-    resultLabel = new LabelButton(styles, 'restart', "Restart");
-    $('#question-form').append(resultLabel.getString());
-
-    $('#question-form').off('mouseup');
-
-    $('#question-form').on('mouseup', function(){
-        $('#question-form').off('mouseup');        
-        StartQuiz();
-    });
-    */
 
     SetBackgroundHighlight(-1, questionIndex);
 }
@@ -277,7 +290,6 @@ function SelectItem(targetObj)
     {
         $('label').removeClass("selected");
         
-        console.log(`toggle selected from ${$(targetObj).hasClass("answer")}`);
         $(targetObj).toggleClass("selected");
     }
 }
