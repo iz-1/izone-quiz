@@ -19,15 +19,16 @@ let score = 0;
 let transitionTimer = null;
 let prevItem = null;
 
-//const listStyle = "answerItem";
 const listStyle = "question";
 const answerStyle = "answer hover";
-const questionClassID = ".question-list";
 const resultSplashTimeMs = 1 * 1000;
 
-//{question: "Test", answers: ["The Unit", "Mix Nine", "K-pop Star", "Idol School", "Dancing 9"]}
+/*  Table entry format:
+    {question: "Test", answers: ["The Unit", "Mix Nine", "K-pop Star", "Idol School", "Dancing 9"], color: F1D2E7}
+*/
 const DataBase = [];        
 
+// Handle the keyboard focus for input/checkbox items and apply to parent div for style/effect
 function CheckboxParentFocus()
 {
     console.log(`Called CheckboxParentFocus`);
@@ -40,10 +41,12 @@ function CheckboxParentFocus()
     });    
 }
 
+// bind keys to handle keyboard input
 function BindKeyPress()
 {
     console.log(`Called BindKeyPress`);
 
+    // bind keydown display
     $('main').on('keydown', function(e){
         if(transitionTimer == null && e.keyCode == 32)
         {            
@@ -68,6 +71,7 @@ function BindKeyPress()
         }        
     });
 
+    // bind keyup selection
     $('main').on('keyup', function(e){
         if(transitionTimer == null && e.keyCode == 32)
         {            
@@ -83,7 +87,7 @@ function BindKeyPress()
                 }
                 else
                 {
-                    SelectItem(childitem);
+                    SelectItemByLabel(childitem);
                     childitem.addClass('selected');
                 }
             }
@@ -91,6 +95,7 @@ function BindKeyPress()
     });
 }
 
+// object used to encompass the checkbox/label within a div
 function LabelButton(classesList, id, value, disable = false)
 {
     this.type = "checkbox",
@@ -113,6 +118,7 @@ function LabelButton(classesList, id, value, disable = false)
     }
 };
 
+// constructs the ul list containing the question and answers from the DataBase
 function GenerateQuestionString(index)
 {
     console.log(`Called GenerateQuestionString`);
@@ -135,20 +141,20 @@ function GenerateQuestionString(index)
     return questionString.join("");
 }
 
+// parses text dump into usable table - @todo regex and remove filter steps
 function GenerateTable()
 {
     console.log(`Called GenerateTable`);
-
     let questionList = data.split(new RegExp(['\\\?', '\\\] ', '\\\['].join('|'), 'g'));
     questionList = questionList.filter(item => item != " " && item != "");
-
     for(let i=0; i<questionList.length; i+=3)
         DataBase.push({question: questionList[i], answers: questionList[i+1].split(", "), color: questionList[i+2]});
 }
 
-function HandleQuiz()
+// Prepare Quiz app
+function InitQuiz()
 {
-    console.log(`Called HandleQuiz`);    
+    console.log(`Called InitQuiz`);    
     BindKeyPress();
     GenerateBackgroundHighlightElements();
     DisableDefaultBehavior();    
@@ -156,6 +162,7 @@ function HandleQuiz()
     DisplayStartButton('Start')
 }
 
+// Prepare Quiz app
 function StartQuiz()
 {
     console.log(`Called StartQuiz`);
@@ -165,9 +172,10 @@ function StartQuiz()
     HandleAnswerSelect();
     RenderQuestion(questionIndex);
     CheckboxParentFocus();
-    CalculateScore();    
+    DisplayScoreInfo();
 }
 
+// disables form submit behavior
 function DisableDefaultBehavior()
 {
     console.log(`Called DisableDefaultBehavior`);
@@ -183,15 +191,14 @@ function AddQuestionToForm()
     $('.question-form').append(`<button class="btn" value='submit'>Test</button>`);
 }
 
+// displays the question and background/question styling
 function RenderQuestion(index)
 {
     console.log(`Called RenderQuestion`);
 
     let questionStr = GenerateQuestionString(index);
-    // display the current question
     
     $('#question-form').empty().append(questionStr);
-
     // set color question color
     let colorstr = `rgba( ${hex2rgb(DataBase[index].color)} , 0.5)`;
     $('.membercolor').css('background-color', colorstr);
@@ -199,6 +206,7 @@ function RenderQuestion(index)
     SetBackgroundHighlight(index, index-1);
 }
 
+// creates the background elements for highlighting effect
 function GenerateBackgroundHighlightElements()
 {
     console.log(`Called GenerateBackgroundHighlightElements`);
@@ -207,14 +215,13 @@ function GenerateBackgroundHighlightElements()
         elements.push(`<li class='highlight' id='hl${i.toString()}'></li>`);
 
     elements.unshift(`<li class='highlight' id='edge'></li>`);
-    
     $('.bgHighlight').append(elements.join(""));
 }
 
+// set/unset background items highlighting
 function SetBackgroundHighlight(index, prevIndex)
 {
     console.log(`Called SetBackgroundHighlight`);
-
     const HighLightListOrder = [11, 3, 10, 4, 1, 9, 8, 12, 2, 5, 7, 6];
 
     if(prevIndex>=0)
@@ -223,13 +230,13 @@ function SetBackgroundHighlight(index, prevIndex)
         $('#hl' + HighLightListOrder[index].toString()).addClass('bghl');
 }
 
+// generates a button to start/restart the quiz
 function DisplayStartButton(btnText)
 {
     // restart button
     let styles = [listStyle, answerStyle];
     let resultLabel = new LabelButton(styles, 'restart', btnText);
     $('#question-form').append(resultLabel.getString());
-
     $('#question-form').off('mouseup');
 
     $('#question-form').on('mouseup', function(){
@@ -238,19 +245,18 @@ function DisplayStartButton(btnText)
     });
 }
 
+// convert hex color to rgb string
 function hex2rgb(hex)
 {
     let lint = parseInt(hex,16);
     return `${(lint >> 16) & 255},${(lint >> 8) & 255},${lint & 255}`;
 }
 
+// display final results screen, with score/grade and create button to restart quiz
 function DisplayFinalResults()
-{
-    score = 8;
-    
+{   
     let str = "90 A 80 B 70 C 60 D 50 F";
     let parsed = str.split(' ');
-
     let grade = "F";
     let percentage = score / DataBase.length * 100;
 
@@ -266,18 +272,15 @@ function DisplayFinalResults()
     console.log(grade);
 
     $('#question-form').empty();
-
     let styles = ['finalresult'];
     let resultString = `Grade: ${grade}<br>${score} questions correct out of ${DataBase.length}`;
     let resultLabel = new LabelButton(styles, 'cbquestion', resultString, true);
     $('#question-form').append(resultLabel.getString());
-
     DisplayStartButton('Restart');
-
     SetBackgroundHighlight(-1, questionIndex);
 }
 
-function SelectItem(targetObj)
+function SelectItemByLabel(targetObj)
 {
     let sel = $(targetObj).hasClass("selected");
 
@@ -289,40 +292,27 @@ function SelectItem(targetObj)
     else if($(targetObj).hasClass("answer"))
     {
         $('label').removeClass("selected");
-        
+        $(this).removeClass("selectTransition");
         $(targetObj).toggleClass("selected");
     }
 }
 
+// handles mouse selection of answer
 function HandleAnswerSelect()
 {
     console.log(`Called HandleAnswerSelect`);
 
-    $('#question-form').on('mouseup', 'label', function(event) {
-        let sel = $(this).hasClass("selected");
-        console.log(`question-form click, transition? ${transitionTimer == null}, seleced? ${sel}`);
-
+    $('#question-form').on('mouseup', 'label', function(event) {        
         event.stopPropagation();
 
         if(transitionTimer != null)
             return;
 
-        if(sel)
-        {
-            console.log(`disable click`);
-            HandleAnswerSubmit(this);
-        }
-        else if($(this).hasClass("answer"))
-        {
-            $('label').removeClass("selected");
-            $(this).removeClass("selectTransition");
-            
-            console.log(`toggle selected from ${$(this).hasClass("answer")}`);
-            $(this).toggleClass("selected");
-        }
+        SelectItemByLabel(this);
     });
 }
 
+// check answer selection for correct answer and indicate if matched solution and update score
 function HandleAnswerSubmit(eventTarget)
 {
     console.log(`Called HandleAnswerSubmit`);
@@ -331,30 +321,26 @@ function HandleAnswerSubmit(eventTarget)
     // check answer
     if($(eventTarget).hasClass("solution"))
     {
-        UpdateScore(score + 1);
+        score++;
+        DisplayScoreInfo();
         resultText = 'Correct';        
     }
 
     $('.solution').css('background-color', $('.membercolor').css('background-color'));
-
     $('.result').text(resultText);
-
     $('.result').toggleClass('off');
-
-    DisplayResults();       
+    TransitionNextScreen();       
 }
 
-function DisplayResults()
+// after result of question selected is displayed, set the next question or display final results
+function TransitionNextScreen()
 {
-    console.log(`Called DisplayResults`);
-    // display final splash summary
+    console.log(`Called TransitionNextScreen`);
 
     // timer and cleanup page
     transitionTimer = setTimeout(function(){ 
         $('.solution').css('background-color', '');
-
         $('.result').toggleClass('off');
-
         let nextQuestion = questionIndex + 1;
 
         if(nextQuestion >= DataBase.length)
@@ -364,29 +350,19 @@ function DisplayResults()
         else
         {
             RenderQuestion(nextQuestion);
-            UpdateQuestionNumber(nextQuestion);
+            questionIndex = nextQuestion;
+            DisplayScoreInfo();
         }
 
         transitionTimer = null;
     }, resultSplashTimeMs);
 }
 
-function CalculateScore()
+// update score info
+function DisplayScoreInfo()
 {
-    console.log(`Called CalculateScore`);
+    console.log(`Called DisplayScoreInfo`);
     $('.score').html(`Score: ${score}<br>Question: ${questionIndex+1}/${DataBase.length}`);
-}
-
-function UpdateScore(val)
-{
-    $('.score').html(`Score: ${val}<br>Question: ${questionIndex+1}/${DataBase.length}`);
-    score = val;
-}
-
-function UpdateQuestionNumber(val)
-{
-    $('.score').html(`Score: ${score}<br>Question: ${val+1}/${DataBase.length}`);
-    questionIndex = val;
 }
 
 /**
@@ -401,4 +377,4 @@ function shuffleArray(array) {
     }
 }
 
-$(HandleQuiz);
+$(InitQuiz);
