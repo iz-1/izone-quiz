@@ -26,6 +26,7 @@ header {
     background-color:rgba(238,58,158,0.5);
     margin-left:auto;
     margin-right:auto;
+    margin-bottom: 12vh;
 }
 .header-items {
     align-items:center;
@@ -40,16 +41,16 @@ header {
 li{
     width: 30vw;    
 }
-label {
+label, legend {
     margin-bottom: 1vh;
     margin-left:auto;
     margin-right:auto;
     padding-left: 50px;
     padding-right: 50px;
     width:90%;
-}
-#question-form {
-    margin-top: 12vh;
+} 
+legend {
+    width: 98%;
 }
 .question {
     align-items:center;
@@ -71,6 +72,7 @@ label {
 .answer.hover:hover, div:focus label {
     background-color: #999;
     background-color:rgba(255,255,255,0.1);
+    cursor: pointer;
     transition:.5s;
 }
 .answer.hover:active {
@@ -79,13 +81,8 @@ label {
 .spacePress {
     border: 1px solid white;
 }
-form input[type=checkbox] {
+form input[type=radio] {
     display: none;
-}
-form input[type=checkbox]:checked + .selected {
-    background-color: #FFF;
-    background-color:rgba(255,255,255,0);
-    transition:.3s;
 }
 body {
     background-color: #FFF;
@@ -93,19 +90,17 @@ body {
     overflow: hidden;
 }
 .result {
+    color: #fff;
     -moz-animation-name:flash linear 500ms infinite;
     -ms-animation-name:flash linear 500ms infinite;
     -webkit-animation:flash linear 500ms infinite;
-    animation:flash linear 500ms infinte;
-    color: rgb(238,58,158);
-    color:rgba(255,255,255,0);
+    animation:flash linear 500ms infinte;    
 }
 .off {
     -moz-animation-name:none;
     -ms-animation-name:none;
     -webkit-animation-name:none;
     animation-name:none;
-    text-shadow:none;
 }
 div:focus {
     outline: none;
@@ -170,23 +165,23 @@ div:focus {
 }
 @-webkit-keyframes flash {
     0% {
-       color: rgba(255,255,255,0);
+        color: #fff;
    }
     50% {
-       color: rgba(255,255,255,1);
+        color: rgba(255,255,255,0);
    }
     100% {
-       color: rgba(255,255,255,0);
+        color: #fff;
    }
 }
 @keyframes flash {
     0% {
-       color: rgba(255,255,255,0);
+        color: #fff;
    }
     50% {
-       color: rgba(255,255,255,1);
+        color: rgba(255,255,255,0);
    }
     100% {
-       color: rgba(255,255,255,0);
+        color: #fff;
    }
 }

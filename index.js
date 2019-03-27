@@ -21,7 +21,7 @@ let prevItem = null;
 
 const listStyle = "question";
 const answerStyle = "answer hover";
-const resultSplashTimeMs = 1 * 1000;
+const resultSplashTimeMs = 2 * 1000;
 
 /*  Table entry format:
     {question: "Test", answers: ["The Unit", "Mix Nine", "K-pop Star", "Idol School", "Dancing 9"], color: F1D2E7}
@@ -47,6 +47,7 @@ function BindKeyPress()
     console.log(`Called BindKeyPress`);
 
     // bind keydown display
+    /*
     $('main').on('keydown', function(e){
         if(transitionTimer == null && e.keyCode == 32)
         {            
@@ -69,7 +70,7 @@ function BindKeyPress()
                 }
             }
         }        
-    });
+    }); */
 
     // bind keyup selection
     $('main').on('keyup', function(e){
@@ -88,7 +89,7 @@ function BindKeyPress()
                 else
                 {
                     SelectItemByLabel(childitem);
-                    childitem.addClass('selected');
+                    //childitem.addClass('selected');
                 }
             }
         }
@@ -96,27 +97,47 @@ function BindKeyPress()
 }
 
 // object used to encompass the checkbox/label within a div
-function LabelButton(classesList, id, value, disable = false)
+function LabelButton(classesList, id, value)
 {
-    this.type = "checkbox",
     this.class = classesList,
     this.id = id,
     this.val = value,
-    this.disabled = disable,
 
-    this.getCBString = function(){
-        return `<input type='${this.type}' id='${this.id}'${this.disabled ? ' disabled' : ''}>`;
+    this.getInputString = function(){
+        return CreateTagString('input', this.class, "", [['type', 'radio'],['id', this.id]]);
     }
 
     this.getLabelString = function()
     {
-        return `<label class='${this.class.join(' ')}' for='${this.id}'>${this.val}</label>`;
+        return CreateTagString('label', this.class, this.val, [['for', this.id]]);
     }
 
     this.getString = function() {
-        return `<div tabindex='${this.disabled? -1:0}'>${this.getCBString() + this.getLabelString()}</div>`;
+        return CreateTagString('div', [], this.getInputString() + this.getLabelString(), [['tabindex', 0]]);
     }
 };
+
+// helper to create a basic html tags
+function CreateTagString(tagType, classesList, innerValue, valuePairs)
+{
+    let tagString = `<${tagType} `;
+    if(!classesList.empty)
+        tagString += `class='${classesList.join(' ')}'`;
+    for(let i=0; i<valuePairs.length; ++i){
+        tagString += ` ${valuePairs[i][0]}='${valuePairs[i][1]}'`;
+    }
+    tagString += '>';
+
+    tagString += (innerValue == "") ? "" : innerValue + `</${tagType}>`;
+    return tagString;
+}
+
+// creates answer text upon incorrect selection
+function GenerageAnswerString(index)
+{
+    console.log(`Called GenerageAnswerString`);
+    return `The Correct answer is ${DataBase[index].answers[0]}`;
+}
 
 // constructs the ul list containing the question and answers from the DataBase
 function GenerateQuestionString(index)
@@ -135,8 +156,9 @@ function GenerateQuestionString(index)
      }
 
     shuffleArray(questionString);
-    let styles = [listStyle, 'membercolor'];
-    questionString.unshift(new LabelButton(styles, 'cbquestion', `${q.question}?`, true).getString());
+
+    let legendElement = CreateTagString('legend', [listStyle, 'membercolor'], q.question, [['id', 'cbquestion']]);
+    questionString.unshift(legendElement);
 
     return questionString.join("");
 }
@@ -172,7 +194,7 @@ function StartQuiz()
     HandleAnswerSelect();
     RenderQuestion(questionIndex);
     CheckboxParentFocus();
-    DisplayScoreInfo();
+    DisplayScoreInfo();    
 }
 
 // disables form submit behavior
@@ -199,6 +221,7 @@ function RenderQuestion(index)
     let questionStr = GenerateQuestionString(index);
     
     $('#question-form').empty().append(questionStr);
+
     // set color question color
     let colorstr = `rgba( ${hex2rgb(DataBase[index].color)} , 0.5)`;
     $('.membercolor').css('background-color', colorstr);
@@ -239,7 +262,7 @@ function DisplayStartButton(btnText)
     $('#question-form').append(resultLabel.getString());
     $('#question-form').off('mouseup');
 
-    $('#question-form').on('mouseup', function(){
+    $('#question-form').on('mouseup', 'label', function(){
         $('#question-form').off('mouseup');        
         StartQuiz();
     });
@@ -274,14 +297,20 @@ function DisplayFinalResults()
     $('#question-form').empty();
     let styles = ['finalresult'];
     let resultString = `Grade: ${grade}<br>${score} questions correct out of ${DataBase.length}`;
-    let resultLabel = new LabelButton(styles, 'cbquestion', resultString, true);
-    $('#question-form').append(resultLabel.getString());
+    let resultLabel = CreateTagString('legend', styles, resultString, [['id', 'cbquestion']]);
+    $('#question-form').append(resultLabel);
+
     DisplayStartButton('Restart');
     SetBackgroundHighlight(-1, questionIndex);
 }
 
 function SelectItemByLabel(targetObj)
 {
+    HandleAnswerSubmit(targetObj);
+
+    //@todo indicate double selection to user 
+
+    /*
     let sel = $(targetObj).hasClass("selected");
 
     if(sel)
@@ -295,6 +324,7 @@ function SelectItemByLabel(targetObj)
         $(this).removeClass("selectTransition");
         $(targetObj).toggleClass("selected");
     }
+    */
 }
 
 // handles mouse selection of answer
@@ -304,6 +334,8 @@ function HandleAnswerSelect()
 
     $('#question-form').on('mouseup', 'label', function(event) {        
         event.stopPropagation();
+
+        console.log(this);
 
         if(transitionTimer != null)
             return;
@@ -317,18 +349,26 @@ function HandleAnswerSubmit(eventTarget)
 {
     console.log(`Called HandleAnswerSubmit`);
 
-    let resultText = "Incorrect";
+    let resultText = '';
     // check answer
     if($(eventTarget).hasClass("solution"))
     {
         score++;
         DisplayScoreInfo();
         resultText = 'Correct';        
+        $('.result').removeClass('off');
+    }
+    else
+    {
+        // set solution to display to user
+        resultText = GenerageAnswerString(questionIndex);
+        $('.result').addClass('off');
     }
 
     $('.solution').css('background-color', $('.membercolor').css('background-color'));
     $('.result').text(resultText);
-    $('.result').toggleClass('off');
+    $('.result').css('visibility', 'visible');
+    
     TransitionNextScreen();       
 }
 
@@ -340,7 +380,7 @@ function TransitionNextScreen()
     // timer and cleanup page
     transitionTimer = setTimeout(function(){ 
         $('.solution').css('background-color', '');
-        $('.result').toggleClass('off');
+        $('.result').css('visibility', 'hidden');
         let nextQuestion = questionIndex + 1;
 
         if(nextQuestion >= DataBase.length)
