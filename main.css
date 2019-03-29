@@ -3,10 +3,12 @@
     src: url(assets/hoonslimskinnyl.woff2) format('woff2'),
     url(assets/hoonslimskinnyl.woff) format('woff');
 }
-.header-items, main {    
+.header-items, main, label, legend, .question {    
     color:#FFF;
     font-family:HoonSlim;
-    font-size: calc(24pt + 1vw);
+    /*font-size: calc([minimum size] + ([maximum size] - [minimum size]) * ((100vw - [minimum viewport width]) / ([maximum viewport width] - [minimum viewport width]))); */
+    font-size: calc(20px + (50 - 20) * ((100vw - 360px) / (1920 - 360)));
+    letter-spacing: 1px;
     font-weight:700;
     text-shadow:
     3px 3px 0 #1d0029, 
@@ -30,24 +32,29 @@ header {
 }
 .header-items {
     align-items:center;
+    box-sizing: border-box;
     display:flex;
     justify-content:space-around;
     list-style-type:none;
-    margin:2px 20px;
-    margin-left: auto;
-    margin-right: auto;
+    margin:2px auto;
+    padding: 0;
     text-align: center;
 }
 li{
     width: 30vw;    
 }
+div {
+    width: 100vw;
+    border: 0;
+}
 label, legend {
     margin-bottom: 1vh;
-    margin-left:auto;
-    margin-right:auto;
     padding-left: 50px;
-    padding-right: 50px;
-    width:90%;
+    padding-right: 50px;     
+    margin-left: auto;
+    margin-right: auto;
+    width:82vw;
+    box-sizing: border-box;
 } 
 legend {
     width: 98%;
@@ -56,10 +63,9 @@ legend {
     align-items:center;
     border-radius:10px;
     display:flex;
-    font-size: calc(20pt + 1vw);
     height: 10vh;
     max-height: 200px;
-    justify-content:center;    
+    justify-content:center;
 }
 .membercolor {
     background-color: #000;
@@ -67,7 +73,7 @@ legend {
 }
 .answer {
     background-color: #444;
-    background-color: rgba(0,0,0,0.2);
+    background-color: rgba(0,0,0,0.4);
 }
 .answer.hover:hover, div:focus label {
     background-color: #999;
@@ -122,66 +128,56 @@ div:focus {
 .bgHighlight {
     background-image:url('assets/bg.jpg'); 
     background-repeat: no-repeat;
-    object-fit: scale-down;    
+    box-sizing: border-box;
     background-color: #444;
     background-color:rgba(0,0,0,0.2); 
     display:flex;
     flex-direction:row;
+    height:100vh;    
     list-style-type:none;
     margin:0;
-    mix-blend-mode:darken;
-    padding:0;
     margin-left:auto;
-    margin-right:auto;
+    margin-right:auto;    
+    mix-blend-mode:darken;
+    object-fit: scale-down;
+    padding:0;
     position:absolute;
     width:100vw;
-    height:100vh;
-    z-index:-2;
+    z-index:-2;    
 }
 .bgHighlight { /* mobile portrait */
-    background-position: center calc(-5vh);
-    background-size: 120% auto;
+    background-position-x: center;
+    background-position-y: calc(-25vh);
+    background-size: cover;
 }
-@media (min-aspect-ratio: 1160 / 853)
+@media (min-aspect-ratio:  1024 / 768) /*1.3333333333333333333333333333333*/
 {
-    .bgHighlight {
-        background-position: center calc(-38vh);
-        background-size: cover;
-    }   
-    #edge,#hl2,#hl3 {
-        width:6%;
-    }
-    #hl1,#hl6,#hl8,#hl9,#hl10 {
-        width:8%;
-    }
-    #hl4,#hl5,#hl7,#hl11,#hl12 {
-        width:7%;
-    }
+    #edge,#hl2,#hl3 { width:6%; }
+    #hl1,#hl6,#hl8,#hl9,#hl10 { width:8%; }
+    #hl4,#hl5,#hl7,#hl11,#hl12 { width:7%; }
     .bghl {
         background-color: #444;
         background-color:rgba(255,255,255,0.5);
         transition:1s;
     }
 }
+@media (orientation: landscape){
+    @media (min-height: 320px) { .bgHighlight {background-position-y: calc(-32vh);}}
+    @media (min-height: 375px) { .bgHighlight {background-position-y: calc(-35vh);}}
+    @media (min-height: 411px) { .bgHighlight {background-position-y: calc(-35vh);}}
+    @media (min-height: 414px) { .bgHighlight {background-position-y: calc(-32vh);}}
+    @media (min-height: 768px) { .bgHighlight {background-position-y: calc(-25vh);}}
+    @media (min-height: 930px) { .bgHighlight {background-position-y: calc(-35vh);}}
+    @media (min-height: 1024px) { .bgHighlight {background-position-y: calc(-26vh);}}
+    @media (min-height: 1080px) { .bgHighlight {background-position-y: calc(-32vh);}}
+}
 @-webkit-keyframes flash {
-    0% {
-        color: #fff;
-   }
-    50% {
-        color: rgba(255,255,255,0);
-   }
-    100% {
-        color: #fff;
-   }
+    0% { color: #fff;}
+    50% { color: rgba(255,255,255,0); }
+    100% {color: #fff; }
 }
 @keyframes flash {
-    0% {
-        color: #fff;
-   }
-    50% {
-        color: rgba(255,255,255,0);
-   }
-    100% {
-        color: #fff;
-   }
+    0% { color: #fff;}
+    50% { color: rgba(255,255,255,0); }
+    100% {color: #fff; }
 }

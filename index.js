@@ -136,7 +136,7 @@ function CreateTagString(tagType, classesList, innerValue, valuePairs)
 function GenerageAnswerString(index)
 {
     console.log(`Called GenerageAnswerString`);
-    return `The Correct answer is ${DataBase[index].answers[0]}`;
+    return `The correct answer is<br> ${DataBase[index].answers[0]}`;
 }
 
 // constructs the ul list containing the question and answers from the DataBase
@@ -157,7 +157,7 @@ function GenerateQuestionString(index)
 
     shuffleArray(questionString);
 
-    let legendElement = CreateTagString('legend', [listStyle, 'membercolor'], q.question, [['id', 'cbquestion']]);
+    let legendElement = CreateTagString('legend', [listStyle, 'membercolor'], `${q.question}?`, [['id', 'cbquestion']]);
     questionString.unshift(legendElement);
 
     return questionString.join("");
@@ -223,7 +223,7 @@ function RenderQuestion(index)
     $('#question-form').empty().append(questionStr);
 
     // set color question color
-    let colorstr = `rgba( ${hex2rgb(DataBase[index].color)} , 0.5)`;
+    let colorstr = `rgba( ${hex2rgb(DataBase[index].color)} , 0.8)`;
     $('.membercolor').css('background-color', colorstr);
 
     SetBackgroundHighlight(index, index-1);
@@ -292,8 +292,6 @@ function DisplayFinalResults()
         }
     }
 
-    console.log(grade);
-
     $('#question-form').empty();
     let styles = ['finalresult'];
     let resultString = `Grade: ${grade}<br>${score} questions correct out of ${DataBase.length}`;
@@ -335,8 +333,6 @@ function HandleAnswerSelect()
     $('#question-form').on('mouseup', 'label', function(event) {        
         event.stopPropagation();
 
-        console.log(this);
-
         if(transitionTimer != null)
             return;
 
@@ -366,7 +362,7 @@ function HandleAnswerSubmit(eventTarget)
     }
 
     $('.solution').css('background-color', $('.membercolor').css('background-color'));
-    $('.result').text(resultText);
+    $('.result').html(resultText);
     $('.result').css('visibility', 'visible');
     
     TransitionNextScreen();       
